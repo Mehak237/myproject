@@ -1,0 +1,235 @@
+// Event listeners for Buy and Sell buttons
+document.getElementById("buyBtn").addEventListener("click", () => {
+  showForm("buyer");
+});
+
+document.getElementById("sellBtn").addEventListener("click", () => {
+  showForm("seller");
+});
+
+// Initialize an object to store ratings and reviews
+let productReviews = {
+  'Product A': { rating: 4.0, reviews: ['Great product!'] },
+  'Product B': { rating: 3.5, reviews: ['Affordable and useful!'] },
+};
+
+// Function to display the appropriate form (for buyer or seller)
+function showForm(role) {
+  const container = document.getElementById('form-container');
+
+  container.innerHTML = `
+    <h3>Create ${role === 'buyer' ? 'Buyer' : 'Seller'} Profile</h3>
+    <form onsubmit="submitForm(event, '${role}')">
+      <input type="text" placeholder="Full Name" required>
+      <input type="email" placeholder="Email" required>
+      <input type="text" placeholder="Contact Number" required>
+      <input type="text" placeholder="Address" required>
+      ${role === 'seller' ? <input type="text" placeholder="Store Name" required> : ''}
+      ${role === 'seller' ? <input type="text" placeholder="Store Description" required> : ''}
+      <button type="submit">Submit</button>
+    </form>
+  `;
+}
+
+// Function to handle the form submission
+function submitForm(event, role) {
+  event.preventDefault();
+  const name = event.target[0].value;
+  const email = event.target[1].value;
+  const contact = event.target[2].value;
+  const address = event.target[3].value;
+
+  if (role === 'buyer') {
+    alert(Buyer profile created for ${name}.);
+    showBuyerProfile(name);
+  } else if (role === 'seller') {
+    const storeName = event.target[4].value;
+    const storeDesc = event.target[5].value;
+    alert(Seller profile created for ${storeName}.);
+    showSellerProfile(storeName, storeDesc);
+  }
+
+  // Clear form after submission
+  document.getElementById('form-container').innerHTML = '';
+}
+
+// Function to show the Buyer's profile page with Cart and Wishlist
+function showBuyerProfile(name) {
+  const profileContainer = document.getElementById('profile-container');
+
+  profileContainer.innerHTML = `
+    <h3>${name}'s Profile</h3>
+    <h4>Wishlist</h4>
+    <ul id="wishlist">
+      <li>
+        <img src="https://via.placeholder.com/150" alt="Product Image">
+        <p>Product A</p>
+      </li>
+      <li>
+        <img src="https://via.placeholder.com/150" alt="Product Image">
+        <p>Product B</p>
+      </li>
+    </ul>
+
+    <h4>Cart</h4>
+    <ul id="cart">
+      <li>
+        <img src="https://via.placeholder.com/150" alt="Product Image">
+        <p>Product A</p>
+        <p>Price: $120</p>
+        <button onclick="purchaseProduct('Product A')">Buy Product A</button>
+      </li>
+      <li>
+        <img src="https://via.placeholder.com/150" alt="Product Image">
+        <p>Product B</p>
+        <p>Price: $80</p>
+        <button onclick="purchaseProduct('Product B')">Buy Product B</button>
+      </li>
+    </ul>
+  `;
+}
+
+// Function to handle purchase
+function purchaseProduct(productName) {
+  const purchase = confirm(Are you sure you want to buy ${productName}?);
+
+  if (purchase) {
+    alert(Thank you for purchasing ${productName});
+    showRatingForm(productName);
+  }
+}
+
+// Function to show rating and review form after purchase
+function showRatingForm(productName) {
+  const profileContainer = document.getElementById('profile-container');
+
+  profileContainer.innerHTML = `
+    <h3>Rate and Review ${productName}</h3>
+    <form onsubmit="submitReview(event, '${productName}')">
+      <label for="rating">Rating (1-5):</label>
+      <input type="number" id="rating" name="rating" min="1" max="5" required>
+      <br>
+      <label for="review">Review:</label>
+      <textarea id="review" name="review" required></textarea>
+      <br>
+      <button type="submit">Submit Review</button>
+    </form>
+  `;
+}
+
+// Function to submit a review for a product
+function submitReview(event, productName) {
+  event.preventDefault();
+
+  const rating = parseFloat(event.target[0].value);
+  const review = event.target[1].value;
+
+  if (rating >= 1 && rating <= 5) {
+    if (!productReviews[productName]) {
+      productReviews[productName] = { rating: 0, reviews: [] };
+    }
+
+    // Update product's average rating
+    const currentReviews = productReviews[productName].reviews;
+    const currentRating = productReviews[productName].rating;
+    const newAverageRating = (currentRating * currentReviews.length + rating) / (currentReviews.length + 1);
+
+    productReviews[productName].rating = newAverageRating;
+    productReviews[productName].reviews.push(review);
+
+    alert('Review submitted successfully!');
+    showProductReviews(productName);
+  } else {
+    alert('Please provide a rating between 1 and 5.');
+  }
+}
+
+// Function to show product reviews and ratings
+function showProductReviews(productName) {
+  const profileContainer = document.getElementById('profile-container');
+  const product = productReviews[productName];
+
+  let reviewsHtml = product.reviews.map((review, index) => <li>${review}</li>).join('');
+
+  profileContainer.innerHTML = `
+    <h3>Reviews for ${productName}</h3>
+    <p>Average Rating: ${product.rating.toFixed(1)} stars</p>
+    <ul>${reviewsHtml}</ul>
+    <button onclick="showBuyerProfile('Buyer')">Go Back to Profile</button>
+  `;
+}
+
+// Function to show the Seller's profile page
+function showSellerProfile(storeName, storeDesc) {
+  const profileContainer = document.getElementById('profile-container');
+
+  profileContainer.innerHTML = `
+    <h3>${storeName}'s Profile</h3>
+    <p>${storeDesc}</p>
+
+    <h4>Upload Products</h4>
+    <form onsubmit="submitProduct(event)">
+      <input type="text" placeholder="Product Name" required>
+      <input type="text" placeholder="Product Description" required>
+      <input type="number" placeholder="Product Price" required>
+      <input type="file" required>
+      <button type="submit">Submit Product</button>
+    </form>
+
+    <h4>Your Products</h4>
+    <ul id="product-list">
+      <!-- Product will appear here -->
+      <li class="product-card">
+        <img src="https://via.placeholder.com/150" alt="Product Image">
+        <p>Sample Product 1</p>
+        <button onclick="addReview('Sample Product 1')">Add Review</button>
+        <button onclick="addRating('Sample Product 1')">Add Rating</button>
+        <p>Rating: <span id="rating-1">4.5</span> stars</p>
+        <p>Reviews: 
+          <span id="reviews-1">"Great product!"</span>
+        </p>
+      </li>
+      <li class="product-card">
+        <img src="https://via.placeholder.com/150" alt="Product Image">
+        <p>Sample Product 2</p>
+        <button onclick="addReview('Sample Product 2')">Add Review</button>
+        <button onclick="addRating('Sample Product 2')">Add Rating</button>
+        <p>Rating: <span id="rating-2">4.0</span> stars</p>
+        <p>Reviews: 
+          <span id="reviews-2">"Affordable and useful!"</span>
+        </p>
+      </li>
+    </ul>
+  `;
+}
+
+// Function to handle product submission for Seller
+function submitProduct(event) {
+  event.preventDefault();
+
+  const productName = event.target[0].value;
+  const productDesc = event.target[1].value;
+  const productPrice = event.target[2].value;
+
+  const productList = document.getElementById('product-list');
+
+  const productItem = document.createElement('li');
+  productItem.classList.add('product-card');
+  productItem.innerHTML = `
+    <img src="https://via.placeholder.com/150" alt="Product Image">
+    <p>${productName}</p>
+    <p>${productDesc}</p>
+    <p>Price: $${productPrice}</p>
+    <button onclick="addReview('${productName}')">Add Review</button>
+    <button onclick="addRating('${productName}')">Add Rating</button>
+    <p>Rating: <span id="rating-${productName}">N/A</span> stars</p>
+    <p>Reviews: 
+      <span id="reviews-${productName}">No reviews yet</span>
+    </p>
+  `;
+
+  productList.appendChild(productItem);
+
+  // Clear product form after submission
+  event.target.reset();
+}
